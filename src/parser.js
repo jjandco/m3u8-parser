@@ -114,6 +114,7 @@ export default class Parser extends Stream {
       'CLOSED-CAPTIONS': {},
       'SUBTITLES': {}
     };
+    const wiseplayUuid = 'urn:uuid:3d5e6d35-9b9a-41e8-b843-dd3c6e72c42c';
     // This is the Widevine UUID from DASH IF IOP. The same exact string is
     // used in MPDs with Widevine encrypted streams.
     const widevineUuid = 'urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed';
@@ -248,6 +249,13 @@ export default class Parser extends Stream {
               if (!entry.attributes.URI) {
                 this.trigger('warn', {
                   message: 'ignoring key declaration without URI'
+                });
+                return;
+              }
+              // TODO: add full support for this.
+              if (entry.attributes.KEYFORMAT === wiseplayUuid) {
+                this.trigger('warn', {
+                  message: 'wiseplay support should be implemented!'
                 });
                 return;
               }
@@ -400,9 +408,9 @@ export default class Parser extends Stream {
                 this.manifest.mediaGroups || defaultMediaGroups;
 
               if (!(entry.attributes &&
-                    entry.attributes.TYPE &&
-                    entry.attributes['GROUP-ID'] &&
-                    entry.attributes.NAME)) {
+                entry.attributes.TYPE &&
+                entry.attributes['GROUP-ID'] &&
+                entry.attributes.NAME)) {
                 this.trigger('warn', {
                   message: 'ignoring incomplete or missing media group'
                 });
@@ -669,7 +677,7 @@ export default class Parser extends Stream {
           if (entry.segment) {
             currentUri.custom = currentUri.custom || {};
             currentUri.custom[entry.customType] = entry.data;
-          // if this is manifest-level data attach to the top level manifest object
+            // if this is manifest-level data attach to the top level manifest object
           } else {
             this.manifest.custom = this.manifest.custom || {};
             this.manifest.custom[entry.customType] = entry.data;
